@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Saved Tabs</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            padding: 20px; 
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { 
+            color: #333; 
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        ul { 
+            list-style-type: none; 
+            padding: 0; 
+        }
+        li { 
+            margin-bottom: 10px; 
+            display: flex;
+            align-items: center;
+        }
+        a { 
+            color: #0066cc; 
+            text-decoration: none; 
+            flex-grow: 1;
+        }
+        a:hover { 
+            text-decoration: underline; 
+        }
+        .domain {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #444;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .domain-list {
+            margin-left: 20px;
+        }
+        .delete-btn {
+            cursor: pointer;
+            margin-right: 10px;
+            color: #888;
+            font-size: 1.2em;
+        }
+        .delete-btn:hover {
+            color: #f00;
+        }
+        #downloadBtn, #openAllTabsBtn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 10px 10px 0;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #downloadBtn:hover, #openAllTabsBtn:hover {
+            background-color: #45a049;
+        }
+        #openAllTabsBtn {
+            background-color: #008CBA;
+        }
+        #openAllTabsBtn:hover {
+            background-color: #007B9A;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">Saved Tabs</h1>
+    <button id="downloadBtn">Download JSON</button>
+    <button id="openAllTabsBtn">Open All Tabs</button>
+    <div id="tabList"></div>
+
+    <script src="view.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tab Collector</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            width: 400px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #collectButton {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background-color: #4CAF50;
+        }
+        #collectButton:hover {
+            background-color: #45a049;
+        }
+        #result, #savedFiles {
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h2>Tab Collector</h2>
+    <button id="collectButton">Save Tabs</button>
+    <div id="result"></div>
+    <div id="savedFiles"></div>
+    <script src="popup.js"></script>
+</body>
+</html>
