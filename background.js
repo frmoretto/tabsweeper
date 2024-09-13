@@ -151,6 +151,45 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     logToFile("Retrieving extension log");
     sendResponse({success: true, log: extensionLog.join('\n')});
     return true;
+  } else if (request.action === "openAllTabs") {
+    logToFile("Opening tabs with a limit of 20 per window...");
+    if (request.tabs && request.tabs.length > 0) {
+      const tabGroups = [];
+      for (let i = 0; i < request.tabs.length; i += 20) {
+        tabGroups.push(request.tabs.slice(i, i + 20));
+      }
+      
+      let windowsCreated = 0;
+      let totalTabsOpened = 0;
+
+      function createNextWindow(index) {
+        if (index < tabGroups.length) {
+          chrome.windows.create({ url: tabGroups[index][0].url }, (newWindow) => {
+            if (chrome.runtime.lastError) {
+              logToFile(`Error creating new window: ${chrome.runtime.lastError.message}`, true);
+              sendResponse({success: false, error: chrome.runtime.lastError.message});
+              return;
+            }
+            for (let i = 1; i < tabGroups[index].length; i++) {
+              chrome.tabs.create({ windowId: newWindow.id, url: tabGroups[index][i].url });
+            }
+            windowsCreated++;
+            totalTabsOpened += tabGroups[index].length;
+            logToFile(`Opened ${tabGroups[index].length} tabs in window ${windowsCreated}`);
+            createNextWindow(index + 1);
+          });
+        } else {
+          logToFile(`Finished opening ${totalTabsOpened} tabs in ${windowsCreated} windows`);
+          sendResponse({success: true, message: `Opened ${totalTabsOpened} tabs in ${windowsCreated} windows`});
+        }
+      }
+
+      createNextWindow(0);
+    } else {
+      logToFile("No tabs to open", true);
+      sendResponse({success: false, error: "No tabs to open"});
+    }
+    return true;
   } else {
     logToFile(`Unknown action received: ${request.action}`, true);
     sendResponse({success: false, error: `Unknown action: ${request.action}`});

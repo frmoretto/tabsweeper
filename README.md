@@ -8,9 +8,12 @@ Tab Collector is a Chrome extension that allows users to easily collect, manage,
 - View and manage collected tabs
 - Organize tabs by domain
 - Export tab collections as JSON files
-- Open all saved tabs at once
-- Delete individual tabs from collections
+- Open all saved tabs at once (with a limit of 20 tabs per window)
+- Delete individual tabs or entire collections
 - Automatic backup of tab collections
+- Declutter feature to review and organize saved tabs
+- GDPR/Cookie banner handling in declutter mode
+- Detailed logging system for debugging and error tracking
 
 ## Project Structure
 
@@ -23,6 +26,7 @@ tab-collector-extension/
 ├── popup.js             # JavaScript for the extension popup
 ├── view.html            # HTML for viewing saved tab collections
 ├── view.js              # JavaScript for viewing saved tab collections
+├── content.js           # Content script for interacting with web pages
 ├── .gitignore           # Git ignore file
 ├── package.json         # NPM package file
 └── README.md            # This file
@@ -56,7 +60,26 @@ tab-collector-extension/
    - Open individual tabs
    - Delete individual tabs
    - Download the tab collection as a JSON file
-   - Open all tabs in the collection at once
+   - Open all tabs in the collection at once (with a limit of 20 tabs per window)
+   - Use the declutter feature to review and organize saved tabs
+
+## Key Features
+
+### 20-Tab Limit Per Window
+
+When opening all saved tabs, the extension limits the number of tabs opened per window to 20. This feature helps manage browser performance and prevents overwhelming the user with too many tabs in a single window. If there are more than 20 tabs to open, the extension will create additional windows as needed.
+
+### Declutter Feature
+
+The declutter feature allows users to review their saved tabs and decide which ones to keep. It presents tabs one by one, asking the user if they want to keep, remove, or skip the tab. This helps users maintain a clean and relevant tab collection.
+
+### GDPR/Cookie Banner Handling
+
+In declutter mode, the extension attempts to handle GDPR and cookie banners by hiding them, ensuring a cleaner view of the webpage when reviewing tabs.
+
+### Logging System
+
+The extension includes a detailed logging system that helps with debugging and tracking errors. This is particularly useful for developers maintaining and improving the extension.
 
 ## Development
 

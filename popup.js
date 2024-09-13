@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const collectButton = document.getElementById('collectButton');
   const resultDiv = document.getElementById('result');
   const savedFilesList = document.getElementById('savedFiles');
+  const tabCountElement = document.createElement('div');
+  tabCountElement.id = 'tabCount';
+  document.body.insertBefore(tabCountElement, savedFilesList);
 
   function addIntroduction() {
     const introDiv = document.createElement('div');
@@ -144,8 +147,16 @@ document.addEventListener('DOMContentLoaded', function() {
     );
   }
 
+  function updateTabCount() {
+    chrome.tabs.query({}, function(tabs) {
+      const count = tabs.length;
+      tabCountElement.textContent = `Current open tabs: ${count}`;
+    });
+  }
+
   addIntroduction();
   updateSavedFilesList();
+  updateTabCount();
 
   if (collectButton) {
     collectButton.addEventListener('click', function() {
@@ -155,12 +166,17 @@ document.addEventListener('DOMContentLoaded', function() {
         } else if (response && response.success) {
           showMessage(`Data saved as: ${response.fileName} (${response.urlCount} URLs, ${response.fileSizeKB} KB)`);
           updateSavedFilesList();
+          updateTabCount();
         } else {
           showMessage('Failed to save tab data: ' + (response ? response.error : 'Unknown error'), true);
         }
       });
     });
   }
+
+  // Update tab count when tabs are created or removed
+  chrome.tabs.onCreated.addListener(updateTabCount);
+  chrome.tabs.onRemoved.addListener(updateTabCount);
 });
 
 // Add updated CSS styles
@@ -202,6 +218,11 @@ style.textContent = `
     background-color: #d32f2f;
     transform: translateY(-2px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  #tabCount {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
   }
 `;
 document.head.appendChild(style);
