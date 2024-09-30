@@ -1,14 +1,16 @@
 {
-  "name": "tab-collector-extension",
-  "version": "1.0.0",
-  "description": "A Chrome extension for collecting and managing open tabs",
+  "name": "tabsweeper",
+  "version": "1.4.0",
+  "description": "A Chrome extension for collecting, managing, and decluttering open tabs",
   "main": "background.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "chrome-extension",
-    "tab-management"
+    "tab-management",
+    "tab-organizer",
+    "productivity"
   ],
   "author": "",
   "license": "MIT",

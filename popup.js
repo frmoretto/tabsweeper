@@ -1,26 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
   const collectButton = document.getElementById('collectButton');
+  const uploadButton = document.getElementById('uploadButton');
+  const fileInput = document.getElementById('fileInput');
   const resultDiv = document.getElementById('result');
   const savedFilesList = document.getElementById('savedFiles');
-  const tabCountElement = document.createElement('div');
-  tabCountElement.id = 'tabCount';
-  document.body.insertBefore(tabCountElement, savedFilesList);
-
-  function addIntroduction() {
-    const introDiv = document.createElement('div');
-    introDiv.className = 'introduction';
-    introDiv.innerHTML = `
-      <h2>Welcome to Tabs Saved Files</h2>
-      <p>This extension helps you manage your browser tabs efficiently:</p>
-      <ul>
-        <li>Save all your open tabs with a single click</li>
-        <li>Organize and access your saved tab collections easily</li>
-        <li>Backup your browsing sessions for future reference</li>
-        <li>Streamline your workflow and reduce browser clutter</li>
-      </ul>
-    `;
-    document.body.insertBefore(introDiv, document.body.firstChild);
-  }
+  const tabCountElement = document.getElementById('tabCount');
 
   function updateSavedFilesList() {
     chrome.runtime.sendMessage({action: "getSavedFiles"}, function(response) {
@@ -28,76 +12,72 @@ document.addEventListener('DOMContentLoaded', function() {
         showMessage("Error loading saved files. Please try again.", true);
         return;
       }
-      savedFilesList.innerHTML = '';
-      if (response && response.files) {
-        response.files.forEach(file => {
+      savedFilesList.innerHTML = '<h3>Saved Files</h3>';
+      if (response && response.files && response.files.length > 0) {
+        // Sort files by creation date in descending order
+        const sortedFiles = response.files.sort((a, b) => b.createdAt - a.createdAt);
+
+        const ul = document.createElement('ul');
+        ul.className = 'file-list';
+        sortedFiles.forEach(file => {
           if (!file.isBackup) {
             const li = document.createElement('li');
             li.className = 'file-item';
-
-            const fileInfo = document.createElement('div');
-            fileInfo.className = 'file-info';
-            fileInfo.innerHTML = `
-              <div class="file-name">${file.displayName}</div>
-              <div class="file-details">(${file.urlCount} URLs, ${file.fileSizeKB} KB)</div>
+            li.innerHTML = `
+              <div class="file-info">
+                <i class="fas fa-file-alt file-icon"></i>
+                <div class="file-details">
+                  <div class="file-name">${file.displayName}</div>
+                  <div class="file-meta">${file.urlCount} URLs, ${file.fileSizeKB} KB</div>
+                  <div class="file-date">${new Date(file.createdAt).toLocaleString()}</div>
+                </div>
+              </div>
+              <div class="file-actions">
+                <button class="view-btn" title="View & Download"><i class="fas fa-eye"></i></button>
+                <button class="delete-btn" title="Delete"><i class="fas fa-trash-alt"></i></button>
+              </div>
             `;
-
-            const buttonsDiv = document.createElement('div');
-            buttonsDiv.className = 'file-buttons';
-
-            const viewButton = document.createElement('button');
-            viewButton.innerHTML = 'View<br>&<br>Download';
-            viewButton.className = 'view-btn';
-            viewButton.addEventListener('click', function() {
+            
+            li.querySelector('.view-btn').addEventListener('click', function() {
               chrome.runtime.sendMessage({action: "openViewPage", fileName: file.fileName});
             });
-
-            buttonsDiv.appendChild(viewButton);
-
-            const deleteButtonDiv = document.createElement('div');
-            deleteButtonDiv.className = 'delete-button-container';
-
-            const deleteButton = document.createElement('button');
-            deleteButton.innerHTML = '&#128465;'; // Trash bin icon
-            deleteButton.className = 'delete-btn';
-            deleteButton.addEventListener('click', function() {
+            
+            li.querySelector('.delete-btn').addEventListener('click', function() {
               deleteFile(file.fileName);
             });
-
-            deleteButtonDiv.appendChild(deleteButton);
-
-            li.appendChild(fileInfo);
-            li.appendChild(buttonsDiv);
-            li.appendChild(deleteButtonDiv);
-            savedFilesList.appendChild(li);
+            
+            ul.appendChild(li);
           }
         });
-        showMessage("Saved files list updated successfully");
+        savedFilesList.appendChild(ul);
       } else {
-        showMessage("Unexpected response when loading saved files", true);
+        savedFilesList.innerHTML += '<p>No saved files found.</p>';
       }
     });
   }
 
-  function createModal(message, yesCallback, noCallback) {
+  function createConfirmationModal(title, message, confirmCallback, cancelCallback) {
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'confirmation-modal';
     modal.innerHTML = `
-      <div class="modal-content">
+      <div class="confirmation-modal-content">
+        <h2>${title}</h2>
         <p>${message}</p>
-        <button class="yes-btn">Yes</button>
-        <button class="no-btn">No</button>
+        <div class="confirmation-modal-buttons">
+          <button class="confirm-btn">Confirm</button>
+          <button class="cancel-btn">Cancel</button>
+        </div>
       </div>
     `;
     document.body.appendChild(modal);
 
-    modal.querySelector('.yes-btn').addEventListener('click', () => {
-      yesCallback();
+    modal.querySelector('.confirm-btn').addEventListener('click', () => {
+      confirmCallback();
       modal.remove();
     });
 
-    modal.querySelector('.no-btn').addEventListener('click', () => {
-      if (noCallback) noCallback();
+    modal.querySelector('.cancel-btn').addEventListener('click', () => {
+      if (cancelCallback) cancelCallback();
       modal.remove();
     });
   }
@@ -106,17 +86,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${isError ? 'error' : 'success'}`;
     messageDiv.textContent = message;
-    document.body.appendChild(messageDiv);
+    resultDiv.appendChild(messageDiv);
     setTimeout(() => messageDiv.remove(), 3000);
   }
 
   function deleteFile(fileName) {
-    createModal(`Are you sure you want to delete ${fileName}?`, 
+    createConfirmationModal(
+      "Confirm Deletion",
+      `Are you sure you want to delete ${fileName}?`,
       () => {
         const backupFileName = fileName.replace('.json', '-backup.json');
-        createModal('Do you want to delete the backup file as well?',
+        createConfirmationModal(
+          "Delete Backup",
+          'Do you want to delete the backup file as well?',
           () => {
-            createModal("Are you really sure you want to delete the backup file?",
+            createConfirmationModal(
+              "Confirm Backup Deletion",
+              "Are you really sure you want to delete the backup file?",
               () => {
                 chrome.runtime.sendMessage({action: "deleteFiles", files: [fileName, backupFileName]}, function(response) {
                   if (response.success) {
@@ -154,7 +140,54 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  addIntroduction();
+  function handleFileUpload(file) {
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        const jsonContent = JSON.parse(event.target.result);
+        if (jsonContent && jsonContent.tabs && Array.isArray(jsonContent.tabs)) {
+          chrome.runtime.sendMessage({action: "generateFileName", prefix: "uploaded-tabs"}, function(response) {
+            if (response && response.fileName) {
+              const fileName = response.fileName;
+              const fileContent = {
+                metadata: {
+                  totalUrls: jsonContent.tabs.length,
+                  fileSizeKB: Math.round(event.target.result.length / 1024),
+                  excludedExtensionTabs: false,
+                  createdAt: new Date().getTime()
+                },
+                tabs: jsonContent.tabs
+              };
+              chrome.storage.local.set({
+                [fileName]: JSON.stringify(fileContent),
+                [`${fileName}_meta`]: {
+                  urlCount: jsonContent.tabs.length,
+                  fileSizeKB: Math.round(event.target.result.length / 1024),
+                  excludedExtensionTabs: false,
+                  createdAt: fileContent.metadata.createdAt
+                }
+              }, function() {
+                if (chrome.runtime.lastError) {
+                  showMessage('Error uploading file: ' + chrome.runtime.lastError.message, true);
+                } else {
+                  showMessage('File uploaded successfully');
+                  updateSavedFilesList();
+                }
+              });
+            } else {
+              showMessage('Error generating file name', true);
+            }
+          });
+        } else {
+          showMessage('Invalid JSON format. Please upload a valid tab collection file.', true);
+        }
+      } catch (error) {
+        showMessage('Error parsing JSON file: ' + error.message, true);
+      }
+    };
+    reader.readAsText(file);
+  }
+
   updateSavedFilesList();
   updateTabCount();
 
@@ -174,6 +207,19 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  if (uploadButton && fileInput) {
+    uploadButton.addEventListener('click', function() {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        handleFileUpload(file);
+      }
+    });
+  }
+
   // Update tab count when tabs are created or removed
   chrome.tabs.onCreated.addListener(updateTabCount);
   chrome.tabs.onRemoved.addListener(updateTabCount);
@@ -182,47 +228,132 @@ document.addEventListener('DOMContentLoaded', function() {
 // Add updated CSS styles
 const style = document.createElement('style');
 style.textContent = `
+  .file-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  .file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.3s ease;
+  }
+  .file-item:last-child {
+    border-bottom: none;
+  }
+  .file-item:hover {
+    background-color: #f5f5f5;
+  }
+  .file-info {
+    display: flex;
+    align-items: center;
+  }
+  .file-icon {
+    font-size: 24px;
+    color: #3498db;
+    margin-right: 10px;
+  }
+  .file-details {
+    display: flex;
+    flex-direction: column;
+  }
+  .file-name {
+    font-weight: 500;
+    color: #2c3e50;
+  }
+  .file-meta, .file-date {
+    font-size: 12px;
+    color: #7f8c8d;
+  }
+  .file-actions {
+    display: flex;
+  }
   .view-btn, .delete-btn {
-    padding: 8px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    font-size: 16px;
+    transition: color 0.3s ease;
+  }
+  .view-btn {
+    color: #3498db;
+  }
+  .view-btn:hover {
+    color: #2980b9;
+  }
+  .delete-btn {
+    color: #e74c3c;
+  }
+  .delete-btn:hover {
+    color: #c0392b;
+  }
+  .message {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
     font-size: 14px;
+  }
+  .message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  .message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  .confirmation-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .confirmation-modal-content {
+    background-color: #fefefe;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    max-width: 80%;
+    text-align: center;
+  }
+  .confirmation-modal-content h2 {
+    margin-top: 0;
+    color: #333;
+  }
+  .confirmation-modal-buttons {
+    margin-top: 20px;
+  }
+  .confirmation-modal-buttons button {
+    margin: 0 10px;
+    padding: 10px 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 16px;
     transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
-  .view-btn {
+  .confirmation-modal-buttons .confirm-btn {
     background-color: #4CAF50;
     color: white;
-    width: 100px;
-    height: 60px;
-    flex-direction: column;
-    text-align: center;
-    line-height: 1.2;
   }
-  .view-btn:hover {
-    background-color: #45a049;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-  .delete-btn {
+  .confirmation-modal-buttons .cancel-btn {
     background-color: #f44336;
     color: white;
-    width: 60px;
-    height: 60px;
-    font-size: 24px;
   }
-  .delete-btn:hover {
-    background-color: #d32f2f;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-  #tabCount {
-    font-weight: bold;
-    margin-bottom: 10px;
-    color: #333;
+  .confirmation-modal-buttons button:hover {
+    opacity: 0.8;
   }
 `;
 document.head.appendChild(style);

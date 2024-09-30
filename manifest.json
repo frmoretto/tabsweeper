@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Tab Collector",
+  "name": "TabSweeper",
   "version": "1.4",
-  "description": "Collects information about all open tabs across all windows and helps declutter your browser",
+  "description": "Collects and organizes information about all open tabs across all windows and helps declutter your browser",
   "permissions": ["tabs", "storage", "activeTab"],
   "background": {
     "service_worker": "background.js"

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Saved Tabs</title>
+    <title>TabSweeper - Saved Tabs</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -53,7 +53,7 @@
         .delete-btn:hover {
             color: #f00;
         }
-        #downloadBtn, #openAllTabsBtn {
+        #downloadBtn, #declutterBtn, #addTabsBtn, #openAllTabsBtn {
             background-color: #4CAF50;
             border: none;
             color: white;
@@ -66,21 +66,35 @@
             cursor: pointer;
             border-radius: 5px;
         }
-        #downloadBtn:hover, #openAllTabsBtn:hover {
+        #downloadBtn:hover, #declutterBtn:hover, #addTabsBtn:hover, #openAllTabsBtn:hover {
             background-color: #45a049;
         }
-        #openAllTabsBtn {
+        #declutterBtn {
             background-color: #008CBA;
         }
-        #openAllTabsBtn:hover {
+        #declutterBtn:hover {
             background-color: #007B9A;
+        }
+        #addTabsBtn {
+            background-color: #f44336;
+        }
+        #addTabsBtn:hover {
+            background-color: #d32f2f;
+        }
+        #openAllTabsBtn {
+            background-color: #FFA500;
+        }
+        #openAllTabsBtn:hover {
+            background-color: #FF8C00;
         }
     </style>
 </head>
 <body>
-    <h1 id="title">Saved Tabs</h1>
+    <h1 id="title">TabSweeper - Saved Tabs</h1>
     <button id="downloadBtn">Download JSON</button>
-    <button id="openAllTabsBtn">Open All Tabs</button>
+    <button id="declutterBtn">Declutter your browser</button>
+    <button id="addTabsBtn">Add Current Tabs</button>
+    <button id="openAllTabsBtn">Open all tabs</button>
     <div id="tabList"></div>
 
     <script src="view.js"></script>

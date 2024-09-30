@@ -1,43 +1,100 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tab Collector</title>
+    <title>TabSweeper</title>
     <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <style>
         body {
             width: 400px;
             padding: 20px;
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
         }
-        #collectButton {
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        #collectButton, #uploadButton {
             display: block;
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             margin-bottom: 20px;
-            background-color: #4CAF50;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        #collectButton {
+            background-color: #2ecc71;
         }
         #collectButton:hover {
-            background-color: #45a049;
+            background-color: #27ae60;
+        }
+        #uploadButton {
+            background-color: #3498db;
+        }
+        #uploadButton:hover {
+            background-color: #2980b9;
         }
         #result, #savedFiles {
             margin-bottom: 20px;
         }
-        h2 {
-            margin-top: 0;
-            color: #333;
+        #tabCount {
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .introduction {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .introduction h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .introduction p, .introduction ul {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .introduction ul {
+            padding-left: 20px;
+        }
+        #savedFiles {
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-    <h2>Tab Collector</h2>
-    <button id="collectButton">Save Tabs</button>
+    <div class="introduction">
+        <h2>Welcome to TabSweeper</h2>
+        <p>Efficiently manage your browser tabs:</p>
+        <ul>
+            <li>Save all open tabs with one click</li>
+            <li>Organize and access saved tab collections</li>
+            <li>Backup browsing sessions</li>
+            <li>Streamline workflow and reduce clutter</li>
+        </ul>
+    </div>
+    <button id="collectButton"><i class="fas fa-save"></i> Save Tabs</button>
+    <div id="tabCount"></div>
     <div id="result"></div>
     <div id="savedFiles"></div>
+    <button id="uploadButton"><i class="fas fa-upload"></i> Upload JSON</button>
+    <input type="file" id="fileInput" style="display: none;" accept=".json">
     <script src="popup.js"></script>
 </body>
 </html>

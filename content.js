@@ -12,8 +12,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 function createModal() {
   modal = document.createElement('div');
-  modal.id = 'tab-collector-modal';
-  modal.className = 'tab-collector-modal';
+  modal.id = 'tabsweeper-modal';
+  modal.className = 'tabsweeper-modal';
   applyStyles(modal, {
     position: 'fixed',
     left: '0',
@@ -31,7 +31,7 @@ function createModal() {
   });
 
   const modalContent = document.createElement('div');
-  modalContent.className = 'tab-collector-modal-content';
+  modalContent.className = 'tabsweeper-modal-content';
   applyStyles(modalContent, {
     backgroundColor: 'white',
     padding: '20px',
@@ -46,8 +46,8 @@ function createModal() {
   });
 
   const question = document.createElement('p');
-  question.id = 'tab-collector-modal-question';
-  question.className = 'tab-collector-modal-question';
+  question.id = 'tabsweeper-modal-question';
+  question.className = 'tabsweeper-modal-question';
   applyStyles(question, {
     fontSize: '18px',
     marginBottom: '20px',
@@ -55,7 +55,7 @@ function createModal() {
   });
   
   const buttonContainer = document.createElement('div');
-  buttonContainer.className = 'tab-collector-modal-buttons';
+  buttonContainer.className = 'tabsweeper-modal-buttons';
   applyStyles(buttonContainer, {
     display: 'flex',
     justifyContent: 'center',
@@ -65,7 +65,7 @@ function createModal() {
   const createButton = (text, color, action) => {
     const button = document.createElement('button');
     button.textContent = text;
-    button.className = `tab-collector-modal-button tab-collector-modal-button-${action}`;
+    button.className = `tabsweeper-modal-button tabsweeper-modal-button-${action}`;
     applyStyles(button, {
       padding: '10px 20px',
       fontSize: '16px',
@@ -125,7 +125,7 @@ function applyStyles(element, styles) {
 }
 
 function updateModalContent(tabTitle) {
-  const question = document.getElementById('tab-collector-modal-question');
+  const question = document.getElementById('tabsweeper-modal-question');
   question.textContent = `Is this tab still relevant? "${tabTitle}"`;
 }
 

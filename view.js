@@ -4,7 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const title = document.getElementById('title');
     const tabList = document.getElementById('tabList');
     const downloadBtn = document.getElementById('downloadBtn');
-    const declutterBtn = document.getElementById('openAllTabsBtn');
+    const declutterBtn = document.getElementById('declutterBtn');
+    const addTabsBtn = document.getElementById('addTabsBtn');
+    const openAllTabsBtn = document.getElementById('openAllTabsBtn');
     const tabCounter = document.createElement('div');
     tabCounter.id = 'tabCounter';
     tabCounter.style.marginTop = '10px';
@@ -58,7 +60,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    declutterBtn.textContent = 'Declutter your browser...';
     declutterBtn.addEventListener('click', function() {
         if (tabData && tabData.tabs && tabData.tabs.length > 0) {
             skippedTabs = [];
@@ -67,6 +68,87 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('No tabs data available to declutter.');
         }
     });
+
+    addTabsBtn.addEventListener('click', function() {
+        chrome.runtime.sendMessage({action: "addCurrentTabs"}, function(response) {
+            if (response.success) {
+                const newTabs = response.newTabs;
+                chrome.runtime.sendMessage({action: "generateFileName", prefix: "browser-tabs"}, function(fileNameResponse) {
+                    if (fileNameResponse && fileNameResponse.fileName) {
+                        const newFileName = fileNameResponse.fileName;
+                        
+                        let newTabData;
+                        if (tabData && tabData.tabs) {
+                            // Filter out duplicates
+                            const existingUrls = new Set(tabData.tabs.map(tab => tab.url));
+                            const uniqueNewTabs = newTabs.filter(tab => !existingUrls.has(tab.url));
+                            newTabData = {
+                                metadata: {
+                                    totalUrls: tabData.tabs.length + uniqueNewTabs.length,
+                                    fileSizeKB: 0,
+                                    excludedExtensionTabs: true
+                                },
+                                tabs: tabData.tabs.concat(uniqueNewTabs)
+                            };
+                        } else {
+                            newTabData = {
+                                metadata: {
+                                    totalUrls: newTabs.length,
+                                    fileSizeKB: 0,
+                                    excludedExtensionTabs: true
+                                },
+                                tabs: newTabs
+                            };
+                        }
+                        
+                        const jsonString = JSON.stringify(newTabData);
+                        newTabData.metadata.fileSizeKB = Math.round(jsonString.length / 1024);
+                        
+                        // Save the new file
+                        chrome.storage.local.set({
+                            [newFileName]: JSON.stringify(newTabData),
+                            [`${newFileName}_meta`]: newTabData.metadata
+                        }, function() {
+                            if (chrome.runtime.lastError) {
+                                console.error('Error saving new file:', chrome.runtime.lastError);
+                                alert('Failed to save new file: ' + chrome.runtime.lastError.message);
+                            } else {
+                                notifyUserAndAskToView(newFileName, newTabData.tabs.length);
+                            }
+                        });
+                    } else {
+                        alert('Failed to generate file name');
+                    }
+                });
+            } else {
+                alert('Failed to add current tabs: ' + (response.error || 'Unknown error'));
+            }
+        });
+    });
+
+    openAllTabsBtn.addEventListener('click', function() {
+        if (tabData && tabData.tabs && tabData.tabs.length > 0) {
+            openAllTabs();
+        } else {
+            alert('No tabs available to open.');
+        }
+    });
+
+    function openAllTabs() {
+        const delay = 100; // Delay between opening tabs (in milliseconds)
+        tabData.tabs.forEach((tab, index) => {
+            setTimeout(() => {
+                chrome.tabs.create({ url: tab.url, active: false });
+            }, index * delay);
+        });
+    }
+
+    function notifyUserAndAskToView(newFileName, tabCount) {
+        const message = `New file "${newFileName}" created with ${tabCount} tabs. Do you want to view it now?`;
+        if (confirm(message)) {
+            window.location.href = `view.html?file=${encodeURIComponent(newFileName)}`;
+        }
+    }
 
     function declutterBrowser() {
         let currentList = tabData.tabs.length > 0 ? tabData.tabs : skippedTabs;
@@ -130,7 +212,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateStorage() {
-        chrome.storage.local.set({[fileName]: JSON.stringify(tabData)}, function() {
+        const jsonString = JSON.stringify(tabData);
+        const fileSizeKB = Math.round(jsonString.length / 1024);
+        tabData.metadata.totalUrls = tabData.tabs.length;
+        tabData.metadata.fileSizeKB = fileSizeKB;
+
+        chrome.storage.local.set({
+            [fileName]: jsonString,
+            [`${fileName}_meta`]: tabData.metadata
+        }, function() {
             if (chrome.runtime.lastError) {
                 console.error('Error updating storage:', chrome.runtime.lastError);
             }
